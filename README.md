@@ -1,0 +1,1 @@
+# Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina-main
