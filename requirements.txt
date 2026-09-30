@@ -1,0 +1,27 @@
+# Dependencias del Proyecto de Tesis: Modelos Predictivos en Retail de Moda
+# Python >= 3.10 recomendado
+
+# Manipulación de datos y álgebra lineal
+numpy>=1.24.0
+pandas>=2.0.0
+scipy>=1.10.0
+pyarrow>=14.0.0
+openpyxl>=3.1.0
+
+# Modelos Estadísticos y Econometría
+statsmodels>=0.14.0
+scikit-learn>=1.3.0
+
+# Modelos de Machine Learning (Gradient Boosting)
+xgboost>=2.0.0
+lightgbm>=4.1.0
+catboost>=1.2.0
+
+# Deep Learning y Modelos Fundacionales
+torch>=2.0.0
+transformers>=4.38.0
+chronos-forecasting>=0.1.0
+tabpfn>=0.1.10
+
+# Utilidades
+tqdm>=4.66.0
