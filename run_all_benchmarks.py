@@ -2,8 +2,15 @@
 """
 Script Orquestador Maestro - Pipeline Completo de Tesis
 Ejecuta secuencialmente todos los modelos base (Seasonal Naive, Croston, SBA, SARIMA, SARIMAX, LSTM, Chronos)
-y la arquitectura propuesta ES-GBM con Learned Shares, consolidando todo en un ÚNICO archivo Excel maestro:
-resultados/RESULTADOS_TESIS_CONSOLIDADO.xlsx
+y la arquitectura propuesta ES-GBM con Learned Shares.
+
+IMPORTANTE: este script NO genera `resultados/RESULTADOS_TESIS_CONSOLIDADO.xlsx`.
+Los scripts de 01_modelos_base/ imprimen sus métricas por pantalla; los de
+02_modelo_final/ escriben sus propios archivos (LSTM_resultados.xlsx,
+ESGBM_resultados.xlsx, SKU_Share_resultados.xlsx). El libro maestro del
+repositorio fue consolidado aparte (valores oficiales citados en la memoria);
+este orquestador solo lo estiliza (fuentes, anchos y formatos de número) sin
+recalcular ni sobreescribir ninguna cifra.
 """
 
 import os
@@ -57,7 +64,18 @@ def format_excel_workbook(filepath):
                 cell.border = thin_border
                 if isinstance(cell.value, float):
                     col_name = str(ws.cell(1, cell.column).value).lower()
-                    if any(k in col_name for k in ['wape', '%', 'bias', 'share']):
+                    # Las hojas 02/03/07/08 guardan WAPE/MAPE/Bias en PUNTOS
+                    # PORCENTUALES (12.89 = 12,89%), a diferencia de 00/01, que
+                    # guardan fracciones (0.1289). Antes se aplicaba 0.00% a ambas,
+                    # mostrando "1288,51%"; ahora se respeta cada convención.
+                    percent_point_sheets = {
+                        '02_ESGBM_SKU_Detalle', '03_ESGBM_Familia_Detalle',
+                        '07_SARIMA', '08_SARIMAX',
+                    }
+                    is_pct = any(k in col_name for k in ['wape', '%', 'bias', 'share', 'mape'])
+                    if is_pct and ws.title in percent_point_sheets:
+                        cell.number_format = '0.00"%"'
+                    elif is_pct:
                         cell.number_format = '0.00%'
                     else:
                         cell.number_format = '#,##0.00'
@@ -92,7 +110,7 @@ def main():
             print(f" -> [ERROR] Falló la ejecución de {name} (código {result.returncode})")
             
     print("\n" + "=" * 80)
-    print("   FORMATEANDO LIBRO MAESTRO DE RESULTADOS CONSOLIDADO")
+    print("   ESTILIZANDO LIBRO MAESTRO DE RESULTADOS (sin recalcular cifras)")
     print("=" * 80)
     
     if os.path.exists(MASTER_EXCEL):
