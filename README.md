@@ -2,6 +2,8 @@
 
 Repositorio acompañante de la memoria de título **aprobada** "Pronóstico Jerárquico de Demanda Intermitente en el Retail de Moda Femenina", presentada para optar al título profesional de Ingeniero Comercial en la Universidad Técnica Federico Santa María.
 
+**Referencia académica:** [registro de la memoria en el repositorio institucional USM](https://repositorio.usm.cl/entities/tesis/e441d202-31da-47a7-b5bd-89cc4b9f702f) · **Autor:** [Joaquín Mondaca](https://github.com/joaquinignaciomondaca-code) · [código fuente de esta investigación](https://github.com/joaquinignaciomondaca-code/Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina-main).
+
 - **Problema.** En retail de moda la demanda a nivel SKU es intermitente: acertar a nivel Familia no alcanza para dimensionar compras ni reposición.
 - **Enfoque.** Arquitectura híbrida **ES-GBM**: suavizamiento exponencial Holt amortiguado + ensamble de gradient boosting (XGBoost, LightGBM, CatBoost, con TabPFN como variante con gating), ruteo por régimen de crecimiento y desagregación jerárquica Top-Down hacia SKU con *learned shares*.
 - **Resultado.** En test (Feb–Ago 2025, 58 Familias y 100 SKU top-100) el modelo alcanza **WAPE SKU 16,1% / WAPE Familia 12,9%**, por debajo de los 7 benchmarks clásicos, estadísticos y fundacionales evaluados (el mejor, LSTM con precio ex-ante, 45,75% / 32,34%).
