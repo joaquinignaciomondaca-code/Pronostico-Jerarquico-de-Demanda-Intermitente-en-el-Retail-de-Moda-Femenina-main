@@ -7,7 +7,7 @@ Arquitectura Propuesta: ES-GBM Ensemble & Regimen Routing (Nivel Familia)
 =============================================================================
 
 ¿QUÉ HACE ESTE SCRIPT EN SIMPLE?
-1. Desacopla la inercia estructural de la demanda usando Holt-Winters amortiguado.
+1. Desacopla la inercia estructural de la demanda usando Holt amortiguado (tendencia amortiguada, sin estacional).
 2. Modela los residuos comerciales con ensambles de Gradient Boosting (XGBoost, LightGBM, CatBoost) y TabPFN.
 3. Pondera los modelos mediante optimización no negativa (NNLS) calibrada exclusivamente en validación.
 4. Aplica un ruteo dinámico por régimen según el momentum trimestral de ventas.
@@ -20,12 +20,6 @@ Arquitectura Propuesta: ES-GBM Ensemble & Regimen Routing (Nivel Familia)
 CUT_DATE = '2025-01-01'        # Fecha de corte: inicio del conjunto de prueba ciego
 C1_DATE = '2024-03-01'         # Fecha de corte intermedia para calibración y validación
 SEEDS_ML = (42, 1, 7, 2025, 99, 3, 11, 21) # Semillas aleatorias para robustez estadística
-
-
-# =============================================================================
-CUT_DATE = '2025-01-01'
-C1_DATE = '2024-03-01'
-SEEDS_ML = (42, 1, 7, 2025, 99, 3, 11, 21)
 
 
 # =============================================================================
@@ -137,7 +131,7 @@ MONTHS = sorted(full['Fecha'].unique())
 
 
 # =============================================================================
-# ---------- Sección 4: Modelado Base (Holt-Winters + ML Ensemble) ----------
+# ---------- Sección 4: Modelado Base (Holt amortiguado + ML Ensemble) ----------
 # =============================================================================
 # Ajuste de niveles base con ExponentialSmoothing y entrenamiento conjunto de 
 # modelos de Machine Learning (XGBoost, LightGBM, CatBoost) con ponderación NNLS.
@@ -286,7 +280,7 @@ def _tabpfn_token_available():
     return False
 
 _TABPFN_OK = _tabpfn_token_available()
-print(f"[TabPFN] token disponible: {_TABPFN_OK} -> usar TabPFN v3" if _TABPFN_OK
+print(f"[TabPFN] token disponible: {_TABPFN_OK} -> usar TabPFN (v2.x según requirements)" if _TABPFN_OK
       else "[TabPFN] sin token: se omite TabPFN y se usa fallback (vC/tC)", flush=True)
 
 from tabpfn import TabPFNRegressor

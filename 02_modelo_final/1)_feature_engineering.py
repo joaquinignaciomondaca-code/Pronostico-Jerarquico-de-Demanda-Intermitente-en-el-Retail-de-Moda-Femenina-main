@@ -242,7 +242,7 @@ for var in MACRO_VARS_LAG1:
         if var in df.columns:
             df = df.drop(columns=[var], errors='ignore')
 
-print(f"Lags seguros creados. {len(OPERATIONAL_VARS_LAG2)} variables con t-2, {len(MACRO_VARS_LAG1)} con t-1.")
+print(f"Lags seguros creados. {len(MACRO_VARS_LAG1)} variables con t-1 (anti-leakage).")
 
 MACRO_LAGGED_FEATURES = [
     f'{var.replace(" ", "_").replace("/", "_").replace("(", "").replace(")", "")}_Lag2_Seguro'
