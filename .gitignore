@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Datos de entrada (ver README, sección "Datos": disponible en el repo original público)
+inputs/
+
+# Archivo local de auditoría (uso interno, no forma parte de la entrega)
+AUDITORIA_INCONSISTENCIAS.md
+
+# Artefactos regenerables al ejecutar el pipeline
+catboost_info/
+out_es2/
+out_so/
+outputs/
+modelos/
+LSTM_resultados.xlsx
+ESGBM_resultados.xlsx
+SKU_Share_resultados.xlsx
+predicciones_*.csv

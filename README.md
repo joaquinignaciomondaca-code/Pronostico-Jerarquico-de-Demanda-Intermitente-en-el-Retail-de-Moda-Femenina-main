@@ -11,9 +11,8 @@ El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamie
 ```
 ├── 01_modelos_base/          # Scripts de benchmarks (SARIMA, SARIMAX, LSTM, Chronos, Croston, SBA, SN)
 ├── 02_modelo_final/          # Pipeline ES-GBM (feature engineering, ensemble, desagregación)
-├── inputs/                   # Base de datos de entrada (parquet)
-├── outputs/                  # Resultados y artefactos generados
-└── modelos/                  # Modelos entrenados
+├── resultados/                # RESULTADOS_TESIS_CONSOLIDADO.xlsx (métricas oficiales y detalle)
+└── run_all_benchmarks.py     # Orquestador de benchmarks (estiliza el Excel consolidado)
 ```
 
 ## Scripts principales
@@ -24,7 +23,7 @@ El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamie
 | `01_modelos_base/b)_sarimax_topdown.py` | SARIMAX con precio y descuento como regresores |
 | `01_modelos_base/c)_lstm_topdown.py` | Red LSTM con y sin precio ex-ante |
 | `01_modelos_base/d)_chronos_topdown.py` | Amazon Chronos-Bolt (zero-shot) |
-| `01_modelos_base/e)_seasonal_naive_topdown.py` | Seasonal Naïive |
+| `01_modelos_base/e)_seasonal_naive_topdown.py` | Seasonal Naïve |
 | `01_modelos_base/f)_croston_topdown.py` | Croston clásico |
 | `01_modelos_base/g)_sba_topdown.py` | Syntetos-Boylan Approximation |
 | `02_modelo_final/1)_feature_engineering.py` | Construcción de features de panel |
@@ -35,19 +34,23 @@ El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamie
 
 | Modelo | WAPE SKU | WAPE Familia |
 |--------|----------|--------------|
-| ES-GBM (propuesto) | 16,10% | 12,89% |
-| ES-GBM-Learned Shares | 24,35% | — |
-| LSTM (con precio) | 45,75% | — |
-| Chronos-Bolt | — | 36,35% |
-| Seasonal Naïive | 69,89% | 59,78% |
-| SARIMAX | 73,24% | 59,64% |
-| SARIMA | 76,74% | 64,84% |
-| SBA | 83,42% | — |
-| Croston | 84,87% | — |
+| ES-GBM + Learned Shares (propuesto) | 16,10% | 12,89% |
+| LSTM (con precio ex-ante) | 45,75% | 32,34% |
+| Chronos-Bolt Small (zero-shot) | 48,44% | 36,35% |
+| LSTM (sin precio) | 53,76% | 40,51% |
+| Seasonal Naïve | 69,89% | 59,78% |
+| SARIMAX (con precio ex-ante) | 73,24% | 59,64% |
+| SARIMA (1,1,1)(1,1,1)12 | 76,74% | 64,84% |
+| SBA (2005) | 83,42% | 74,27% |
+| Croston (1972) | 84,87% | 75,41% |
+
+Fuente: `resultados/RESULTADOS_TESIS_CONSOLIDADO.xlsx`, hoja `00_Resumen_Consolidado`. Ventana oficial Feb–Ago 2025 (7 meses), 58 Familias y 100 SKU top-100; las hojas `04`–`10` del consolidado permiten re-verificar cada cifra.
+
+> Nota de trazabilidad (desagregación SKU): el modelo propuesto tiene dos salidas documentadas en el consolidado. La cifra oficial (WAPE SKU = **16,10%**, hoja `02_ESGBM_SKU_Detalle`) corresponde a la desagregación final por shares (selección automática estático/dinámico). La hoja `03_ESGBM_Familia_Detalle` registra la variante auxiliar evaluada dentro del ensemble con proporciones estáticas (WAPE SKU = **29,67%**), con el mismo nivel Familia (12,89%).
 
 ## Requisitos
 
-- Python 3.9+
+- Python 3.10+
 - pandas, numpy, scikit-learn
 - xgboost, lightgbm, catboost
 - tabpfn
@@ -60,6 +63,10 @@ El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamie
 
 La base de datos (`inputs/base_datos.parquet`) contiene series de demanda mensual anonymizadas y escaladas linealmente por un factor proporcional común para preservar confidencialidad comercial. Las variaciones porcentuales, elasticidades y métricas relativas se mantienen intactas.
 
+Por su tamaño, el parquet no se versiona en este repositorio; está disponible en el repositorio original público: [joako0o/Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina](https://github.com/joako0o/Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina).
+
+Las columnas `Unidades` y `Monto Neto` vienen **netas de devoluciones** (~10,6% de las líneas de venta son negativas). El pipeline ES-GBM recorta los netos negativos a cero tras la agregación Familia-Mes; los benchmarks (Croston/SBA/Naive) tratan los meses negativos como demanda nula; los totales publicados corresponden a demanda neta.
+
 ## Nota
 
-Este repositorio contiene exclusivamente los scripts del pipeline y los datos de entrada/salida. La versión LaTeX de la tesis se agregará tras la defensa.
+Este repositorio contiene los scripts del pipeline y el libro de resultados consolidado (la base de datos de entrada no se versiona; ver sección "Datos"). La versión LaTeX de la tesis se agregará tras la defensa.
