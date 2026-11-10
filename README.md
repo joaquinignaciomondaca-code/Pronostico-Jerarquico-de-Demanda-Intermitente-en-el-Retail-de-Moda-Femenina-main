@@ -8,6 +8,9 @@ Repositorio acompañante de la memoria de título **aprobada** "Pronóstico Jer�
 
 *Hybrid ES-GBM pipeline for intermittent demand forecasting in fashion retail — hierarchical Top-Down disaggregation to SKU, WAPE 16.1% (SKU) / 12.9% (Family), benchmarked against 7 models including LSTM and Amazon Chronos-Bolt.*
 
+[![CI](https://github.com/joaquinignaciomondaca-code/Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina-main/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/joaquinignaciomondaca-code/Pronostico-Jerarquico-de-Demanda-Intermitente-en-el-Retail-de-Moda-Femenina-main/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg?style=flat-square)](https://www.python.org/downloads/)
+
 ## Estructura del repositorio
 
 ```
