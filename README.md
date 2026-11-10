@@ -15,6 +15,30 @@ El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamie
 └── run_all_benchmarks.py     # Orquestador de benchmarks (estiliza el Excel consolidado)
 ```
 
+## Flujo del pipeline
+
+```mermaid
+flowchart LR
+    DB[("base_datos.parquet<br/>demanda mensual neta")]
+    BENCH["7 benchmarks<br/>SN · Croston · SBA<br/>SARIMA · SARIMAX · LSTM · Chronos-Bolt"]
+    subgraph PROP["Modelo propuesto"]
+        direction LR
+        FE["1) Feature engineering"] --> ESGBM["2) ES-GBM<br/>Holt amortiguado + GBM (+ TabPFN)"] --> SH["3) Learned Shares<br/>desagregación Top-Down a SKU"]
+    end
+    OUT[("resultados/<br/>RESULTADOS_TESIS_CONSOLIDADO.xlsx")]
+
+    DB --> BENCH
+    DB --> FE
+    BENCH --> OUT
+    ESGBM --> OUT
+    SH --> OUT
+```
+
+Notas para quien lee el código:
+
+- Los benchmarks (`01_modelos_base/`) y el pipeline propuesto (`02_modelo_final/`) leen la misma base y reportan sobre la ventana oficial de test (Feb–Ago 2025, métricas netas de devoluciones).
+- Los scripts `02_modelo_final/` ejecutan el feature engineering por `exec` y generan sus propias predicciones; `run_all_benchmarks.py` **estiliza** el Excel consolidado — no lo regenera ni recalcula cifras.
+- Las cifras oficiales publicadas están en la hoja `00_Resumen_Consolidado` del Excel.
 ## Scripts principales
 
 | Script | Descripción |
