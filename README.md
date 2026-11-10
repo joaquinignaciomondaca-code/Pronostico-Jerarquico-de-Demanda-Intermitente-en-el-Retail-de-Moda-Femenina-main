@@ -1,10 +1,12 @@
 # Pronóstico Jerárquico de Demanda Intermitente en Retail de Moda Femenina
 
-Repositorio acompañante de la memoria de título "Pronóstico Jerárquico de Demanda Intermitente en el Retail de Moda Femenina", presentada para optar al título profesional de Ingeniero Comercial en la Universidad Técnica Federico Santa María.
+Repositorio acompañante de la memoria de título **aprobada** "Pronóstico Jerárquico de Demanda Intermitente en el Retail de Moda Femenina", presentada para optar al título profesional de Ingeniero Comercial en la Universidad Técnica Federico Santa María.
 
-## Descripción
+- **Problema.** En retail de moda la demanda a nivel SKU es intermitente: acertar a nivel Familia no alcanza para dimensionar compras ni reposición.
+- **Enfoque.** Arquitectura híbrida **ES-GBM**: suavizamiento exponencial Holt amortiguado + ensamble de gradient boosting (XGBoost, LightGBM, CatBoost, con TabPFN como variante con gating), ruteo por régimen de crecimiento y desagregación jerárquica Top-Down hacia SKU con *learned shares*.
+- **Resultado.** En test (Feb–Ago 2025, 58 Familias y 100 SKU top-100) el modelo alcanza **WAPE SKU 16,1% / WAPE Familia 12,9%**, por debajo de los 7 benchmarks clásicos, estadísticos y fundacionales evaluados (el mejor, LSTM con precio ex-ante, 45,75% / 32,34%).
 
-El pipeline implementa una arquitectura híbrida (ES-GBM) que combina suavizamiento exponencial Holt amortiguado con ensambles de árboles potenciados (XGBoost, LightGBM, CatBoost) y un modelo fundacional tabular (TabPFN), con desagregación jerárquica Top-Down hacia nivel SKU. La evaluación se realizó sobre 7 meses fuera de muestra (febrero–agosto 2025) en 100 SKUs de alto volumen y 58 Familias.
+*Hybrid ES-GBM pipeline for intermittent demand forecasting in fashion retail — hierarchical Top-Down disaggregation to SKU, WAPE 16.1% (SKU) / 12.9% (Family), benchmarked against 7 models including LSTM and Amazon Chronos-Bolt.*
 
 ## Estructura del repositorio
 
@@ -39,6 +41,7 @@ Notas para quien lee el código:
 - Los benchmarks (`01_modelos_base/`) y el pipeline propuesto (`02_modelo_final/`) leen la misma base y reportan sobre la ventana oficial de test (Feb–Ago 2025, métricas netas de devoluciones).
 - Los scripts `02_modelo_final/` ejecutan el feature engineering por `exec` y generan sus propias predicciones; `run_all_benchmarks.py` **estiliza** el Excel consolidado — no lo regenera ni recalcula cifras.
 - Las cifras oficiales publicadas están en la hoja `00_Resumen_Consolidado` del Excel.
+
 ## Scripts principales
 
 | Script | Descripción |
@@ -72,6 +75,10 @@ Fuente: `resultados/RESULTADOS_TESIS_CONSOLIDADO.xlsx`, hoja `00_Resumen_Consoli
 
 > Nota de trazabilidad (desagregación SKU): el modelo propuesto tiene dos salidas documentadas en el consolidado. La cifra oficial (WAPE SKU = **16,10%**, hoja `02_ESGBM_SKU_Detalle`) corresponde a la desagregación final por shares (selección automática estático/dinámico). La hoja `03_ESGBM_Familia_Detalle` registra la variante auxiliar evaluada dentro del ensemble con proporciones estáticas (WAPE SKU = **29,67%**), con el mismo nivel Familia (12,89%).
 
+![WAPE SKU por modelo (test Feb–Ago 2025). ES-GBM + Learned Shares lidera con 16,10%; le siguen LSTM con precio ex-ante (45,75%) y Chronos-Bolt (48,44%).](assets/wape_sku.png)
+
+*Figura 1. WAPE a nivel SKU por modelo. Menor es mejor; el modelo propuesto (ámbar) supera a los 7 benchmarks. Mismos datos que la tabla anterior.*
+
 ## Requisitos
 
 - Python 3.10+
@@ -91,6 +98,27 @@ Por su tamaño, el parquet no se versiona en este repositorio; está disponible 
 
 Las columnas `Unidades` y `Monto Neto` vienen **netas de devoluciones** (~10,6% de las líneas de venta son negativas). El pipeline ES-GBM recorta los netos negativos a cero tras la agregación Familia-Mes; los benchmarks (Croston/SBA/Naive) tratan los meses negativos como demanda nula; los totales publicados corresponden a demanda neta.
 
+## Limitaciones (léelas junto con los resultados)
+
+En beneficio de la transparencia técnica:
+
+- **Ventanas de test no uniformes en los benchmarks.** `a)_sarima_topdown.py`, `b)_sarimax_topdown.py` y `d)_chronos_topdown.py` incluyen enero-2025 en la ventana evaluada (`>= CUT_DATE`); el resto de los modelos usa Feb–Ago 2025. Las cifras publicadas en la tabla y el Excel corresponden a Feb–Ago 2025.
+- **Alcance SKU distinto.** Los benchmarks clásicos (SARIMA/SARIMAX/Chronos) evaluaron a nivel SKU sobre todo el catálogo; los demás (y los detalles del consolidado), sobre los 100 SKU top-100.
+- **Selección de motor de shares sobre test.** `3)_desagregacion_sku_share.py` elige el mejor motor/ensemble con WAPE medido sobre test; la selección estático/dinámico y los pesos del ES-GBM sí se calibran en validación. Queda como deuda técnica corregible (selección en validación).
+- **Sesgo leve.** ES-GBM presenta Bias ≈ −4,8% (subestimación) a ambos niveles. Conviene monitorizarlo y calibrarlo antes de un despliegue productivo.
+- **Naturaleza de los datos.** `Unidades`/`Monto Neto` vienen netas de devoluciones; ~9,4% de los SKU-meses del test tienen demanda cero (intermitencia). Los MAPE de los benchmarks clásicos superan 100% por los meses de demanda pequeña pero no nula.
+- **Muestra y protocolo acotados.** Split temporal único (sin CV rodante), 58 Familias y 100 SKU; las cifras no extrapolan necesariamente a otras temporadas ni a catálogos distintos.
+- **Consolidación manual.** El Excel maestro fue ensamblado manualmente a partir de los artefactos de cada script; `run_all_benchmarks.py` no lo regenera ni recalcula.
+
+## Cómo reproducir
+
+1. Python 3.10+: `pip install -r requirements.txt`.
+2. Coloca la base en `inputs/base_datos.parquet` (ver "Datos" para la fuente).
+3. Benchmarks: ejecuta `python run_all_benchmarks.py` o cada script de `01_modelos_base/` por separado; imprimen sus métricas al final.
+4. Modelo propuesto (en orden): `python "02_modelo_final/2)_esgbm_ensemble.py"` y luego `python "02_modelo_final/3)_desagregacion_sku_share.py"` (ambos ejecutan el feature engineering por `exec`).
+5. **TabPFN** requiere token de licencia gated (PriorLabs) vía variable de entorno `TABPFN_TOKEN` o caché local; **sin token** el pipeline corre igualmente y omite TabPFN, usando el fallback del ensemble.
+6. Costo aproximado: en CPU el ensamble final (8 semillas + calibración NNLS sobre 4 orígenes OOS) toma varias decenas de minutos; los benchmarks clásicos son más rápidos.
+
 ## Nota
 
-Este repositorio contiene los scripts del pipeline y el libro de resultados consolidado (la base de datos de entrada no se versiona; ver sección "Datos"). La versión LaTeX de la tesis se agregará tras la defensa.
+Este repositorio contiene los scripts del pipeline, el gráfico de resultados y el libro consolidado (`resultados/RESULTADOS_TESIS_CONSOLIDADO.xlsx`); la base de datos de entrada no se versiona (ver sección "Datos").
